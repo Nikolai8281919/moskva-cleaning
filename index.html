@@ -2,6 +2,13 @@
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png.PNG">
+<link rel="apple-touch-icon" href="icon-192.png.PNG">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Мягкая чистка">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Мягкая чистка — выездная химчистка мебели в Москве</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
@@ -168,4 +175,5 @@ function go(p){page=p;["home","order","status","owner"].forEach(function(k){$("p
  if(p=="order"){ui();build();rs()}if(p=="status")showMine();if(p=="owner")own();scrollTo(0,0)}
 document.addEventListener("click",function(e){var g=e.target.closest("[data-go]");if(g)go(g.dataset.go)});
 $("prices").innerHTML=Object.keys(ITEMS).map(function(k){return'<div class="pr"><span>'+ITEMS[k].n+'</span><b>от '+ITEMS[k].s[0][1]+' ₽</b></div>'}).join("");
+if("serviceWorker" in navigator){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 </script></body></html>
