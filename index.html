@@ -134,7 +134,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
  <div class="c stage"><div id="stg"><canvas id="cv"></canvas></div><div class="bub" id="bub"></div><button class="rb" id="rst" aria-label="Повернуть заново">⟳</button><p class="hint">Потяните, чтобы повернуть</p>
   <div class="dock" id="items"></div></div></div>
  <div class="hr"><div class="c"><h3 id="itn" style="font-size:19px"></h3><p id="isel" style="font-size:13px;margin:-4px 0 10px"></p><div class="seg" id="sizes"></div>
-  <div id="otherbox" class="hid" style="margin-top:12px"><label class="lab" for="otxt">Что нужно почистить?</label><input id="otxt" maxlength="40" placeholder="Например: пуф, подушки, ковёр" style="margin-bottom:4px"><p class="note" style="margin:0">Цену назовём по фото. Фото можно приложить при оформлении.</p></div>
+  <div id="otherbox" class="hid" style="margin-top:12px"><label class="lab" for="otxt">Что нужно почистить?</label><input id="otxt" maxlength="40" placeholder="Например: пуф, подушки, ковёр" style="margin-bottom:4px"><p class="note" style="margin:0 0 4px">Приложите до 3 фото, по ним назовём цену.</p><div class="ph" id="bphs"></div><p class="err" id="bpherr" style="margin:0"></p></div>
   <label class="tgl hid" id="twol"><span>С двух сторон <small class="mut" id="twnote"></small></span><input type="checkbox" id="two"><span class="tg"></span></label>
   <label class="tgl" id="dirl"><span>Сильные загрязнения <small class="mut" id="dnote"></small></span><input type="checkbox" id="dirty"><span class="tg"></span></label>
   <div class="qrow"><span>Количество</span><div class="qty"><button id="qm" aria-label="Меньше">−</button><span id="qv">1</span><button id="qp" aria-label="Больше">+</button></div></div>
@@ -226,7 +226,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 
 <footer class="ft2"><div class="oh"><b style="font-size:18px" id="fb"></b><span class="mut" id="copy"></span></div>
  <div class="lk"><a data-go="contacts" style="color:var(--tx);font-size:17px;width:100%">Связаться</a><a data-go="services">Услуги</a><a data-go="privacy">Конфиденциальность</a><a data-go="authors">Авторы</a><a data-go="owner">Кабинет</a><a data-go="status" id="fmine" class="hid">Моя заявка</a></div>
- <p class="note" style="margin:10px 0 0;font-size:11px">версия 2 · 16.11</p><div class="tb"><button class="chip sm" id="thm">☀️ Светлая тема</button><button class="chip sm" id="inst">⬇ Установить приложение</button></div></footer>
+ <p class="note" style="margin:10px 0 0;font-size:11px">версия 3 · 16.11</p><div class="tb"><button class="chip sm" id="thm">☀️ Светлая тема</button><button class="chip sm" id="inst">⬇ Установить приложение</button></div></footer>
 </main>
 <div id="toast"></div>
 <div class="sheet hid" id="sheet"><div class="c"><h3 id="sht"></h3><p id="shp" style="color:var(--tx)"></p><button class="btn" id="shx">Понятно</button></div></div>
@@ -555,15 +555,15 @@ function bUi(){
  var it=itm(cur)||ITEMS[0];cur=it.k;
  if(!it.s.some(function(z){return z[0]==bsz}))bsz=it.s[Math.min(1,it.s.length-1)][0];
  $("items").innerHTML=ITEMS.map(function(x){return'<button class="pl'+(x.k==cur?' on':'')+'" data-k="'+esc(x.k)+'"><i>'+(ICON[x.shape]||"•")+'</i>'+esc(x.n)+'</button>'}).join("");
- $("itn").textContent=it.n;$("isel").textContent=it.n+" · "+bsz;
+ $("itn").textContent=it.n;$("isel").textContent=it.photo?"Цена по фото":it.n+" · "+bsz;
  $("sizes").innerHTML=it.s.map(function(z){return'<button data-z="'+esc(z[0])+'"'+(z[0]==bsz?' class="on"':'')+'>'+esc(z[0])+'</button>'}).join("");
  $("dirty").checked=bdirty;$("dnote").textContent=SET.dirty?"+"+SET.dirty+"%":"";
  var ph=!!it.photo;if(!it.two)btwo=false;
  $("twol").classList.toggle("hid",!it.two||ph);$("two").checked=btwo;$("twnote").textContent=it.two?"+"+it.two+"%":"";
- $("dirl").classList.toggle("hid",ph);$("otherbox").classList.toggle("hid",!ph);if($("otxt").value!==btxt)$("otxt").value=btxt;
+ $("dirl").classList.toggle("hid",ph);$("otherbox").classList.toggle("hid",!ph);$("sizes").classList.toggle("hid",ph);if(ph)phRender();if($("otxt").value!==btxt)$("otxt").value=btxt;
  $("qv").textContent=bqty;$("qm").disabled=bqty<=1;
  var u=unitPrice(it,bsz,bdirty,btwo);$("pv").textContent=ph?"По фото":rub(u*bqty);
- $("pnote").innerHTML=ph?"Цену назовём по фото":"Предварительно"+(bqty>1?"<br>"+rub(u)+" × "+bqty:"");
+ $("pnote").innerHTML=ph?(PH.length?"Фото: "+PH.length+" из 3":"Цену назовём по фото"):"Предварительно"+(bqty>1?"<br>"+rub(u)+" × "+bqty:"");
  $("add").textContent=editIdx!==null?"Сохранить изменения →":"Добавить в заказ →"}
 $("items").onclick=function(e){var b=e.target.closest("[data-k]");if(!b)return;cur=b.dataset.k;editIdx=null;bUi();if(E1){showShape(E1,itm(cur).shape);E1.hop=1;LI=0;sayNext()}var on=$("items").querySelector(".on");if(on&&on.scrollIntoView)try{on.scrollIntoView({block:"nearest",inline:"center"})}catch(x){}};
 $("sizes").onclick=function(e){var b=e.target.closest("[data-z]");if(b){bsz=b.dataset.z;bUi()}};
@@ -650,13 +650,16 @@ function shrink(file,max,q){return new Promise(function(res,rej){var img=new Ima
   c.toBlob(function(b){b?res({blob:b,url:c.toDataURL("image/jpeg",.5)}):rej(new Error("blob"))},"image/jpeg",q)};
  img.onerror=function(){URL.revokeObjectURL(u);rej(new Error("img"))};img.src=u})}
 function phRender(){
- $("phs").innerHTML=PH.map(function(p,i){return'<div class="th"><img alt="" src="'+p.thumb+'"><button data-rp="'+i+'" aria-label="Убрать">✕</button></div>'}).join("")
-  +(PH.length<3?'<label aria-label="Добавить фото">＋<input type="file" accept="image/*" multiple id="phf"></label>':'')}
-$("phs").addEventListener("change",async function(e){
- if(e.target.id!="phf")return;$("pherr").textContent="";var fs=[].slice.call(e.target.files||[]).slice(0,3-PH.length);
- for(var i=0;i<fs.length;i++){try{var a=await shrink(fs[i],1000,.72),b=await shrink(fs[i],300,.6);PH.push({blob:a.blob,thumb:b.url})}catch(er){$("pherr").textContent="Не удалось открыть одно из фото."}}
- phRender()});
-$("phs").addEventListener("click",function(e){var d=e.target.dataset;if(d.rp!==undefined){PH.splice(+d.rp,1);phRender()}});
+ var H=PH.map(function(p,i){return'<div class="th"><img alt="" src="'+p.thumb+'"><button data-rp="'+i+'" aria-label="Убрать">✕</button></div>'}).join("")
+  +(PH.length<3?'<label aria-label="Добавить фото">＋<input type="file" accept="image/*" multiple class="phf"></label>':'');
+ $("phs").innerHTML=H;$("bphs").innerHTML=H}
+function phAdd(box,errId){
+ box.addEventListener("change",async function(e){
+  if(!e.target.classList.contains("phf"))return;$("pherr").textContent="";$("bpherr").textContent="";var fs=[].slice.call(e.target.files||[]).slice(0,3-PH.length);
+  for(var i=0;i<fs.length;i++){try{var a=await shrink(fs[i],1000,.72),b=await shrink(fs[i],300,.6);PH.push({blob:a.blob,thumb:b.url})}catch(er){$("pherr").textContent=$("bpherr").textContent="Не удалось открыть одно из фото."}}
+  phRender()});
+ box.addEventListener("click",function(e){var d=e.target.dataset;if(d.rp!==undefined){PH.splice(+d.rp,1);phRender()}})}
+phAdd($("phs"));phAdd($("bphs"));
 
 function coRender(){
  if(!CART.lines.length){go("cart");return}
