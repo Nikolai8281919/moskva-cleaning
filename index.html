@@ -49,6 +49,8 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--bd);border-
 .mut{color:var(--mut)}.cmt{background:var(--bg);border-radius:10px;padding:8px 10px}
 .o textarea{margin:4px 0 0;padding:8px 10px;font-size:14px}.o .row{margin:4px 0}
 .chip.sm{padding:6px 12px;font-size:13px}.chip.dn{color:#dc2626}
+.brandline{font-weight:700;margin:0 0 4px;opacity:.95}
+#tab-set .row input{min-width:0}#tab-set select{margin-bottom:6px}
 .note{font-size:13px;color:var(--mut);margin:0 0 10px}.ok{color:var(--ok);font-size:14px}
 a.chip{text-decoration:none;color:var(--tx)}
 .g4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.g4 .c{margin:0;text-align:center;padding:12px}.g4 b{font-size:22px;display:block}
@@ -56,7 +58,7 @@ a.chip{text-decoration:none;color:var(--tx)}
 <div class="w">
 
 <section id="p-home">
- <div class="c hero"><h1>Выездная химчистка мебели в городе Москва</h1><p>Приедем в удобное время, почистим диван, кресло, матрас или ковёр. Без вывоза и без запаха.</p><button class="btn" data-go="order">Заказать</button></div>
+ <div class="c hero"><p class="brandline" id="brand"></p><h1>Выездная химчистка мебели в городе <span id="city">Москва</span></h1><p>Приедем в удобное время, почистим диван, кресло, матрас или ковёр. Без вывоза и без запаха.</p><button class="btn" data-go="order">Заказать</button><a class="btn hid" id="callBtn" style="margin-top:8px"></a></div>
  <h2>Как это работает</h2>
  <div class="g3"><div class="c"><b>1</b>Выберите мебель</div><div class="c"><b>2</b>Оставьте заявку</div><div class="c"><b>3</b>Мы приедем</div></div>
  <h2>Цены</h2><div class="c" id="prices"></div>
@@ -65,7 +67,7 @@ a.chip{text-decoration:none;color:var(--tx)}
  <div class="c"><h3>Игорь ★★★★★</h3><p style="margin:0">Вывели старые пятна на ковре, пропитка работает.</p></div>
  <div class="c"><h3>Мария ★★★★☆</h3><p style="margin:0">Быстро и аккуратно, высох матрас за несколько часов.</p></div>
  <h2>Зона работы</h2>
- <div class="c"><h3>Москва и ближайшее Подмосковье</h3><p style="margin:0">Ежедневно с 9:00 до 21:00. Выезд мастера в день заявки, если оформить до 15:00.</p></div>
+ <div class="c"><h3 id="area">Москва и ближайшее Подмосковье</h3><p style="margin:0" id="hours">Ежедневно с 9:00 до 21:00. Выезд мастера в день заявки, если оформить до 15:00.</p></div>
 </section>
 
 <section id="p-order" class="hid">
@@ -92,11 +94,13 @@ a.chip{text-decoration:none;color:var(--tx)}
   <p class="err" id="pe"></p><button class="btn" id="lg">Войти</button>
   <p class="note" id="demoNote" style="margin-top:10px"></p></div>
  <div id="dash" class="hid"><h1>Панель владельца</h1>
-  <div class="g4"><div class="c"><b id="s0">0</b>новых заявок</div><div class="c"><b id="s1">0</b>заказов сегодня</div><div class="c"><b id="s2">0</b>выручка сегодня, ₽</div><div class="c"><b id="s3">0</b>выручка за 7 дней, ₽</div></div>
+  <div class="row" id="tabs"><button class="chip on" data-tab="ord">Заявки</button><button class="chip" data-tab="set">Цены и настройки</button></div>
+  <div id="tab-ord"><div class="g4"><div class="c"><b id="s0">0</b>новых заявок</div><div class="c"><b id="s1">0</b>заказов сегодня</div><div class="c"><b id="s2">0</b>выручка сегодня, ₽</div><div class="c"><b id="s3">0</b>выручка за 7 дней, ₽</div></div>
   <div class="row" id="flt"></div>
   <div class="row"><button class="chip sm" id="rf">⟳ Обновить</button><span class="note" id="upd" style="align-self:center;margin:0"></span></div>
-  <div class="c" id="list"></div>
-  <button class="btn s" id="out">Выйти</button></div>
+  <div class="c" id="list"></div></div>
+  <div id="tab-set" class="hid"></div>
+  <button class="btn s" id="out" style="margin-top:12px">Выйти</button></div>
 </section>
 </div>
 
@@ -104,8 +108,30 @@ a.chip{text-decoration:none;color:var(--tx)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-var ITEMS={sofa:{n:"Диван",s:[["2-местный",1800],["3-местный",2500],["Угловой",3500]]},chair:{n:"Кресло",s:[["Обычное",900],["Большое",1300]]},mat:{n:"Матрас",s:[["Односпальный",1200],["Двуспальный",1800]]},rug:{n:"Ковёр",s:[["до 3 м²",1000],["3–6 м²",1800],["от 6 м²",2800]]}};
-var EXT=[["Защитная пропитка",500],["Удаление запаха",400],["Выведение пятен",600]];
+var SHAPES={sofa:"Диван",chair:"Кресло",mat:"Матрас",rug:"Ковёр"};
+var DEF={brand:"Мягкая чистка",city:"Москва",phone:"",area:"Москва и ближайшее Подмосковье",hours:"Ежедневно с 9:00 до 21:00. Выезд мастера в день заявки, если оформить до 15:00.",
+ items:[{k:"sofa",n:"Диван",shape:"sofa",s:[["2-местный",1800],["3-местный",2500],["Угловой",3500]]},{k:"chair",n:"Кресло",shape:"chair",s:[["Обычное",900],["Большое",1300]]},{k:"mat",n:"Матрас",shape:"mat",s:[["Односпальный",1200],["Двуспальный",1800]]},{k:"rug",n:"Ковёр",shape:"rug",s:[["до 3 м²",1000],["3–6 м²",1800],["от 6 м²",2800]]}],
+ ext:[["Защитная пропитка",500],["Удаление запаха",400],["Выведение пятен",600]]};
+var SET=DEF,ITEMS=DEF.items,EXT=DEF.ext;
+function itm(k){for(var i=0;i<ITEMS.length;i++)if(ITEMS[i].k==k)return ITEMS[i];return null}
+function money(v){var n=Number(String(v).replace(",",".").replace(/\s/g,""));return(String(v).trim()!==""&&isFinite(n)&&n>=0&&n<=1e6)?Math.round(n):null}
+function cleanSet(d){var o={};d=(d&&typeof d=="object")?d:{};
+ ["brand","city","area","hours"].forEach(function(k){o[k]=(typeof d[k]=="string"&&d[k].trim())?d[k].trim().slice(0,200):DEF[k]});
+ o.phone=(typeof d.phone=="string")?d.phone.trim().slice(0,30):"";
+ var it=[];(Array.isArray(d.items)?d.items:[]).forEach(function(x,i){
+  if(!x||typeof x.n!="string"||!x.n.trim()||!Array.isArray(x.s))return;var s=[];
+  x.s.forEach(function(z){if(Array.isArray(z)&&String(z[0]).trim()&&money(z[1])!==null)s.push([String(z[0]).trim().slice(0,40),money(z[1])])});
+  if(s.length)it.push({k:String(x.k||("i"+i)),n:x.n.trim().slice(0,40),shape:SHAPES[x.shape]?x.shape:"chair",s:s})});
+ o.items=it.length?it:DEF.items;
+ if(Array.isArray(d.ext)){o.ext=[];d.ext.forEach(function(z){if(Array.isArray(z)&&String(z[0]).trim()&&money(z[1])!==null)o.ext.push([String(z[0]).trim().slice(0,40),money(z[1])])})}else o.ext=DEF.ext;
+ return o}
+function applySet(d){SET=cleanSet(d);ITEMS=SET.items;EXT=SET.ext;if(!itm(cur))cur=ITEMS[0].k;ex=ex.filter(function(i){return i<EXT.length})}
+function paint(){
+ document.title=SET.brand+" — выездная химчистка мебели, "+SET.city;
+ $("brand").textContent=SET.brand;$("city").textContent=SET.city;$("area").textContent=SET.area;$("hours").textContent=SET.hours;
+ var cb=$("callBtn");if(SET.phone){cb.href="tel:"+SET.phone.replace(/[^+\d]/g,"");cb.textContent="📞 "+SET.phone;cb.classList.remove("hid")}else cb.classList.add("hid");
+ $("prices").innerHTML=ITEMS.map(function(x){return'<div class="pr"><span>'+esc(x.n)+'</span><b>от '+Math.min.apply(null,x.s.map(function(z){return z[1]}))+' ₽</b></div>'}).join("");
+ if(page=="order"){ui();build()}}
 var COLS=["#8a6f56","#4b6a88","#7d8f6b","#b9b4aa","#a24b4b"];
 var ST={new:"Новая",confirmed:"Подтверждена",road:"В пути",done:"Выполнена",cancelled:"Отменена"};
 var STEPS=["new","confirmed","road","done"],STL=["Принята","Подтверждена","В пути","Готово"];
@@ -180,6 +206,12 @@ var api={
  del:async function(id){
   if(SB){await authed("DELETE","/rest/v1/orders?id=eq."+encodeURIComponent(id),null,{"Prefer":"return=minimal"});return}
   demo.save(demo.all().filter(function(o){return o.id!=id}))},
+ getSettings:async function(){
+  if(SB){var r=await http("GET","/rest/v1/settings?id=eq.1&select=data");return r&&r[0]?r[0].data:null}
+  return ld("cfg",null)},
+ saveSettings:async function(d){
+  if(SB){var r=await authed("PATCH","/rest/v1/settings?id=eq.1",{data:d},{"Prefer":"return=representation"});if(!r||!r.length)throw new Error("not_saved");return}
+  sv("cfg",d)},
  logout:function(){sb=null;rm("sb")}
 };
 function loggedIn(){return SB?!!sb&&!!sb.rt:!!sb}
@@ -190,11 +222,11 @@ var cv=$("cv"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),
 S.add(G);C.position.set(0,2.6,6);C.lookAt(0,.4,0);S.add(new THREE.AmbientLight(0xffffff,.7));
 var dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,6,4);S.add(dl);
 function box(w,h,d,x,y,z,c){var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color:c}));m.position.set(x,y,z);G.add(m)}
-function build(){while(G.children.length)G.remove(G.children[0]);var c=col,d=new THREE.Color(c).multiplyScalar(.78).getHex();
- if(cur=="sofa"){box(3.2,.5,1.2,0,.25,0,d);box(3.2,.35,1,0,.65,.05,c);box(3.2,.9,.35,0,1,-.55,c);box(.35,.8,1.2,-1.6,.65,0,d);box(.35,.8,1.2,1.6,.65,0,d)}
- if(cur=="chair"){box(1.5,.45,1.2,0,.25,0,d);box(1.3,.3,1,0,.58,.05,c);box(1.5,.9,.3,0,.95,-.5,c);box(.3,.7,1.2,-.75,.6,0,d);box(.3,.7,1.2,.75,.6,0,d)}
- if(cur=="mat"){box(2.2,.45,3,0,.25,0,c);box(2.25,.04,3.05,0,.3,0,d)}
- if(cur=="rug"){box(3.2,.08,2.2,0,.05,0,c);box(2.8,.09,1.8,0,.06,0,d);box(2.3,.1,1.3,0,.07,0,c)}}
+function build(){while(G.children.length)G.remove(G.children[0]);var SH=(itm(cur)||ITEMS[0]).shape;var c=col,d=new THREE.Color(c).multiplyScalar(.78).getHex();
+ if(SH=="sofa"){box(3.2,.5,1.2,0,.25,0,d);box(3.2,.35,1,0,.65,.05,c);box(3.2,.9,.35,0,1,-.55,c);box(.35,.8,1.2,-1.6,.65,0,d);box(.35,.8,1.2,1.6,.65,0,d)}
+ if(SH=="chair"){box(1.5,.45,1.2,0,.25,0,d);box(1.3,.3,1,0,.58,.05,c);box(1.5,.9,.3,0,.95,-.5,c);box(.3,.7,1.2,-.75,.6,0,d);box(.3,.7,1.2,.75,.6,0,d)}
+ if(SH=="mat"){box(2.2,.45,3,0,.25,0,c);box(2.25,.04,3.05,0,.3,0,d)}
+ if(SH=="rug"){box(3.2,.08,2.2,0,.05,0,c);box(2.8,.09,1.8,0,.06,0,d);box(2.3,.1,1.3,0,.07,0,c)}}
 function rs(){var w=cv.clientWidth,h=cv.clientHeight;if(w){R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix()}}
 (function loop(){if(!drag)rot+=.006;G.rotation.y=rot;if(page=="order")R.render(S,C);requestAnimationFrame(loop)})();
 cv.onpointerdown=function(e){drag=true;lx=e.clientX;cv.setPointerCapture(e.pointerId)};
@@ -202,12 +234,12 @@ cv.onpointermove=function(e){if(drag){rot+=(e.clientX-lx)*.012;lx=e.clientX}};cv
 addEventListener("resize",rs);
 
 /* заказ */
-function price(){var p=ITEMS[cur].s[$("size").value||0][1];ex.forEach(function(i){p+=EXT[i][1]});return p}
+function price(){var p=itm(cur).s[$("size").value||0][1];ex.forEach(function(i){p+=EXT[i][1]});return p}
 function ui(){
- $("items").innerHTML=Object.keys(ITEMS).map(function(k){return'<button class="chip'+(k==cur?' on':'')+'" data-k="'+k+'">'+ITEMS[k].n+'</button>'}).join("");
+ $("items").innerHTML=ITEMS.map(function(x){return'<button class="chip'+(x.k==cur?' on':'')+'" data-k="'+esc(x.k)+'">'+esc(x.n)+'</button>'}).join("");
  $("cols").innerHTML=COLS.map(function(c){return'<button class="sw'+(c==col?' on':'')+'" style="background:'+c+'" data-c="'+c+'" aria-label="Цвет"></button>'}).join("");
- var v=$("size").value;$("size").innerHTML=ITEMS[cur].s.map(function(s,i){return'<option value="'+i+'">'+s[0]+' — '+s[1]+' ₽</option>'}).join("");
- $("ext").innerHTML=EXT.map(function(e,i){return'<label class="ck"><input type="checkbox" data-e="'+i+'"'+(ex.indexOf(i)>-1?' checked':'')+'>'+e[0]+' (+'+e[1]+' ₽)</label>'}).join("");
+ var v=$("size").value;$("size").innerHTML=itm(cur).s.map(function(s,i){return'<option value="'+i+'">'+esc(s[0])+' — '+s[1]+' ₽</option>'}).join("");
+ $("ext").innerHTML=EXT.map(function(e,i){return'<label class="ck"><input type="checkbox" data-e="'+i+'"'+(ex.indexOf(i)>-1?' checked':'')+'>'+esc(e[0])+' (+'+e[1]+' ₽)</label>'}).join("");
  $("sum").textContent=price()+" ₽"}
 $("items").onclick=function(e){if(e.target.dataset.k){cur=e.target.dataset.k;ex=ex;$("size").innerHTML="";ui();build()}};
 $("cols").onclick=function(e){if(e.target.dataset.c){col=e.target.dataset.c;ui();build()}};
@@ -221,7 +253,7 @@ $("send").onclick=async function(){
  if(n.length<2||!/^[+\d][\d\s()\-]{9,17}$/.test(p)||a.length<5){$("err").textContent="Проверьте имя, телефон (10+ цифр) и адрес.";return}
  $("err").textContent="";busy=true;$("send").textContent="Отправляем…";
  try{
-  var r=await api.createOrder({name:n,phone:p,address:a,wanted:$("dt").value,comment:$("cm").value.trim(),item:ITEMS[cur].n,size:ITEMS[cur].s[$("size").value][0],extras:ex.map(function(i){return EXT[i][0]}),price:price()});
+  var r=await api.createOrder({name:n,phone:p,address:a,wanted:$("dt").value,comment:$("cm").value.trim(),item:itm(cur).n,size:itm(cur).s[$("size").value][0],extras:ex.map(function(i){return EXT[i][0]}),price:price()});
   lastSend=Date.now();sv("mine",{id:r.id,num:r.num});
   $("nm").value=$("ph").value=$("ad").value=$("cm").value="";go("status")
  }catch(e){
@@ -244,7 +276,7 @@ async function showMine(){
  +(can?'<p style="margin:12px 0 0">Заказ отменён. Если это ошибка — оформите новый заказ или позвоните нам.</p>'
   :'<div class="tl">'+STL.map(function(t,k){return'<div'+(k<=i?' class="on"':'')+'>'+t+'</div>'}).join("")+'</div>')
  +'<p style="margin:0">'+esc(o.address)+(o.wanted?' · '+esc(fmt(o.wanted)):'')+'</p></div>'
- +'<button class="btn s" id="rfm">Обновить статус</button><p class="note" style="margin-top:10px">Статус обновляется сам, когда мастер меняет его. Заказ оформлен '+esc(ago(o.created_at))+'.</p>'}
+ +(SET.phone?'<a class="btn s" style="margin-bottom:8px" href="tel:'+esc(SET.phone.replace(/[^+\d]/g,""))+'">📞 Позвонить: '+esc(SET.phone)+'</a>':'')+'<button class="btn s" id="rfm">Обновить статус</button><p class="note" style="margin-top:10px">Статус обновляется сам, когда мастер меняет его. Заказ оформлен '+esc(ago(o.created_at))+'.</p>'}
 $("mine").onclick=function(e){if(e.target.id=="rfm")showMine()};
 
 /* ---------- кабинет владельца ---------- */
@@ -298,11 +330,66 @@ $("lg").onclick=async function(){
 $("out").onclick=function(){api.logout();if(!SB){try{sessionStorage.removeItem("own")}catch(e){}}OL=[];own()};
 setInterval(function(){if(page=="owner"&&loggedIn())refresh(true);else if(page=="status"&&ld("mine",null))showMine()},20000);
 
+/* ---------- вкладка «Цены и настройки» ---------- */
+var DR=null;
+function drClone(){return JSON.parse(JSON.stringify({brand:SET.brand,city:SET.city,phone:SET.phone,area:SET.area,hours:SET.hours,items:SET.items,ext:SET.ext}))}
+function fld(f,label,v,type){return'<label class="note" style="display:block;margin:0 0 2px">'+label+'</label><input data-f="'+f+'" value="'+esc(v)+'"'+(type?' type="'+type+'"':'')+'>'}
+function setHtml(){
+ var h='<div class="c"><h3>О бизнесе</h3>'+fld("brand","Название",DR.brand)+fld("city","Город",DR.city)+fld("phone","Телефон для клиентов (необязательно)",DR.phone,"tel")+fld("area","Зона работы",DR.area)+fld("hours","Часы работы и условия",DR.hours)+'</div>';
+ h+='<h2>Услуги и цены</h2>';
+ DR.items.forEach(function(x,i){
+  h+='<div class="c"><div class="row" style="margin-top:0;flex-wrap:nowrap"><input data-f="in" data-i="'+i+'" value="'+esc(x.n)+'" placeholder="Название услуги" style="flex:1;margin:0"><button class="chip sm dn" data-act="delItem" data-i="'+i+'">Удалить</button></div>'
+  +'<select data-f="shape" data-i="'+i+'" style="margin-top:8px">'+Object.keys(SHAPES).map(function(k){return'<option value="'+k+'"'+(k==x.shape?' selected':'')+'>3D-модель: '+SHAPES[k]+'</option>'}).join("")+'</select>'
+  +x.s.map(function(z,j){return'<div class="row" style="margin:0 0 6px;flex-wrap:nowrap"><input data-f="sl" data-i="'+i+'" data-j="'+j+'" value="'+esc(z[0])+'" placeholder="Размер" style="flex:2;margin:0"><input data-f="sp" data-i="'+i+'" data-j="'+j+'" value="'+esc(z[1])+'" placeholder="Цена" type="number" inputmode="numeric" style="flex:1;margin:0"><button class="chip sm dn" data-act="delSize" data-i="'+i+'" data-j="'+j+'" aria-label="Удалить размер">✕</button></div>'}).join("")
+  +'<button class="chip sm" data-act="addSize" data-i="'+i+'">+ размер</button></div>'});
+ h+='<button class="chip" data-act="addItem">+ Добавить услугу</button>';
+ h+='<h2>Дополнительные услуги</h2><div class="c">'
+  +(DR.ext.length?DR.ext.map(function(z,j){return'<div class="row" style="margin:0 0 6px;flex-wrap:nowrap"><input data-f="en" data-j="'+j+'" value="'+esc(z[0])+'" placeholder="Название" style="flex:2;margin:0"><input data-f="ep" data-j="'+j+'" value="'+esc(z[1])+'" placeholder="Цена" type="number" inputmode="numeric" style="flex:1;margin:0"><button class="chip sm dn" data-act="delExt" data-j="'+j+'" aria-label="Удалить">✕</button></div>'}).join(""):'<p class="note" style="margin:0 0 8px">Нет дополнительных услуг.</p>')
+  +'<button class="chip sm" data-act="addExt">+ доп. услуга</button></div>';
+ h+='<button class="btn" id="svset" style="margin-top:12px">Сохранить</button><p class="note" id="svmsg" style="margin-top:8px"></p>';
+ return h}
+function setRender(){var y=window.scrollY;$("tab-set").innerHTML=setHtml();window.scrollTo(0,y)}
+function setMsg(t,ok){var m=$("svmsg");if(m){m.textContent=t;m.className=ok?"ok":"err"}}
+$("tabs").onclick=function(e){var t=e.target.dataset.tab;if(!t)return;
+ [].forEach.call($("tabs").children,function(b){b.classList.toggle("on",b.dataset.tab==t)});
+ $("tab-ord").classList.toggle("hid",t!="ord");$("tab-set").classList.toggle("hid",t!="set");
+ if(t=="set"){DR=drClone();setRender()}};
+function drInput(e){var d=e.target.dataset;if(!DR||!d.f)return;var v=e.target.value,i=+d.i,j=+d.j;
+ if(d.f=="in")DR.items[i].n=v;else if(d.f=="shape")DR.items[i].shape=v;
+ else if(d.f=="sl")DR.items[i].s[j][0]=v;else if(d.f=="sp")DR.items[i].s[j][1]=v;
+ else if(d.f=="en")DR.ext[j][0]=v;else if(d.f=="ep")DR.ext[j][1]=v;
+ else DR[d.f]=v}
+$("tab-set").addEventListener("input",drInput);$("tab-set").addEventListener("change",drInput);
+$("tab-set").addEventListener("click",async function(e){
+ var d=e.target.dataset,i=+d.i,j=+d.j;
+ if(d.act=="delItem"){if(DR.items.length<2){setMsg("Должна остаться хотя бы одна услуга.");return}DR.items.splice(i,1);setRender()}
+ else if(d.act=="addItem"){DR.items.push({k:"i"+Date.now(),n:"",shape:"chair",s:[["",""]]});setRender()}
+ else if(d.act=="addSize"){DR.items[i].s.push(["",""]);setRender()}
+ else if(d.act=="delSize"){if(DR.items[i].s.length<2){setMsg("У услуги должен остаться хотя бы один размер.");return}DR.items[i].s.splice(j,1);setRender()}
+ else if(d.act=="addExt"){DR.ext.push(["",""]);setRender()}
+ else if(d.act=="delExt"){DR.ext.splice(j,1);setRender()}
+ else if(e.target.id=="svset"){
+  var out={brand:DR.brand.trim(),city:DR.city.trim(),phone:DR.phone.trim(),area:DR.area.trim(),hours:DR.hours.trim(),items:[],ext:[]};
+  if(!out.brand||!out.city){setMsg("Заполните название и город.");return}
+  if(!out.area||!out.hours){setMsg("Заполните зону работы и часы работы.");return}
+  for(var a=0;a<DR.items.length;a++){var x=DR.items[a];
+   if(!x.n.trim()){setMsg("У каждой услуги должно быть название.");return}
+   var sz=[];for(var b=0;b<x.s.length;b++){var lab=String(x.s[b][0]).trim(),pr=money(x.s[b][1]);
+    if(!lab||pr===null){setMsg("«"+x.n.trim()+"»: у каждого размера нужны название и цена (число от 0).");return}sz.push([lab,pr])}
+   out.items.push({k:x.k,n:x.n.trim(),shape:x.shape,s:sz})}
+  for(var c=0;c<DR.ext.length;c++){var z=DR.ext[c],en=String(z[0]).trim(),ep=money(z[1]);
+   if(!en||ep===null){setMsg("У каждой доп. услуги нужны название и цена (число от 0).");return}out.ext.push([en,ep])}
+  $("svset").textContent="Сохраняем…";
+  try{await api.saveSettings(out);sv("cfg",out);applySet(out);paint();DR=drClone();setRender();setMsg("Сохранено. Новые цены уже на сайте.",true)}
+  catch(er){$("svset").textContent="Сохранить";setMsg(er.message=="not_saved"?"Не удалось сохранить: выполните в Supabase файл settings.sql или войдите заново.":"Не удалось сохранить. Проверьте интернет и войдите заново.")}}
+});
+
 /* ---------- навигация ---------- */
 function go(p){page=p;["home","order","status","owner"].forEach(function(k){$("p-"+k).classList.toggle("hid",k!=p)});
  document.querySelectorAll(".tb button").forEach(function(b){b.classList.toggle("on",b.dataset.go==p)});
  if(p=="order"){ui();build();rs()}if(p=="status")showMine();if(p=="owner")own();scrollTo(0,0)}
 document.addEventListener("click",function(e){var g=e.target.closest("[data-go]");if(g)go(g.dataset.go)});
-$("prices").innerHTML=Object.keys(ITEMS).map(function(k){return'<div class="pr"><span>'+ITEMS[k].n+'</span><b>от '+ITEMS[k].s[0][1]+' ₽</b></div>'}).join("");
+applySet(ld("cfg",null));paint();
+(async function(){try{var d=await api.getSettings();if(d&&typeof d=="object"){sv("cfg",d);applySet(d);paint()}}catch(e){}})();
 if("serviceWorker" in navigator){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 </script></body></html>
