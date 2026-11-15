@@ -1,5 +1,8 @@
-// Service worker: кэш для офлайна. Страница берётся из сети, при отсутствии интернета из кэша.
-var CACHE = "myagkaya-v1";
+// Service worker: кэш для офлайна.
+// Страница берётся из сети, а при отсутствии интернета из кэша.
+// Запросы к базе данных (Supabase) и любым другим сайтам сюда НЕ попадают:
+// данные заявок не кэшируются и всегда свежие.
+var CACHE = "myagkaya-v2";
 var CORE = ["./", "index.html", "manifest.json", "icon-192.png.PNG", "icon-512.png.PNG",
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"];
 
@@ -17,14 +20,21 @@ self.addEventListener("activate", function (e) {
 });
 
 self.addEventListener("fetch", function (e) {
-  if (e.request.method !== "GET") return;
+  var req = e.request;
+  if (req.method !== "GET") return;
+  var url = new URL(req.url);
+  var sameOrigin = url.origin === self.location.origin;
+  var isThree = url.hostname === "cdnjs.cloudflare.com";
+  if (!sameOrigin && !isThree) return; // Supabase и прочее идут напрямую в сеть
   e.respondWith(
-    fetch(e.request).then(function (res) {
-      var copy = res.clone();
-      caches.open(CACHE).then(function (c) { c.put(e.request, copy); }).catch(function () {});
+    fetch(req).then(function (res) {
+      if (res && res.ok) {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (c) { c.put(req, copy); }).catch(function () {});
+      }
       return res;
     }).catch(function () {
-      return caches.match(e.request).then(function (hit) {
+      return caches.match(req).then(function (hit) {
         return hit || caches.match("index.html");
       });
     })

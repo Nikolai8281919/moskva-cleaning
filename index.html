@@ -42,8 +42,16 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--bd);border-
 .tl{display:flex;margin:14px 0}.tl div{flex:1;text-align:center;font-size:13px;color:var(--mut);position:relative}
 .tl div:before{content:"";display:block;width:22px;height:22px;border-radius:50%;background:var(--bd);margin:0 auto 4px}
 .tl .on{color:var(--tx);font-weight:700}.tl .on:before{background:var(--ac)}
-.badge{font-size:12px;padding:2px 10px;border-radius:99px;background:var(--bd)}.badge.road{background:var(--wn);color:#fff}.badge.done{background:var(--ok);color:#fff}
-.o{border-top:1px solid var(--bd);padding:12px 0}.o:first-child{border:0}
+.badge{font-size:12px;padding:2px 10px;border-radius:99px;background:var(--bd);white-space:nowrap;color:var(--tx)}
+.badge.new{background:var(--ac);color:var(--acx)}.badge.confirmed{background:#7c3aed;color:#fff}.badge.road{background:var(--wn);color:#fff}.badge.done{background:var(--ok);color:#fff}.badge.cancelled{background:#9ca3af;color:#fff}
+.o{border-top:1px solid var(--bd);padding:14px 0;display:grid;gap:4px}.o:first-child{border:0}
+.oh{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.mut{color:var(--mut)}.cmt{background:var(--bg);border-radius:10px;padding:8px 10px}
+.o textarea{margin:4px 0 0;padding:8px 10px;font-size:14px}.o .row{margin:4px 0}
+.chip.sm{padding:6px 12px;font-size:13px}.chip.dn{color:#dc2626}
+.note{font-size:13px;color:var(--mut);margin:0 0 10px}.ok{color:var(--ok);font-size:14px}
+a.chip{text-decoration:none;color:var(--tx)}
+.g4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.g4 .c{margin:0;text-align:center;padding:12px}.g4 b{font-size:22px;display:block}
 </style></head><body>
 <div class="w">
 
@@ -78,10 +86,16 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--bd);border-
 <section id="p-status" class="hid"><h1>Мой заказ</h1><div id="mine"></div></section>
 
 <section id="p-owner" class="hid">
- <div id="login" class="c"><h1>Вход владельца</h1><input id="pw" type="password" placeholder="Пароль"><p class="err" id="pe"></p><button class="btn" id="lg">Войти</button></div>
+ <div id="login" class="c"><h1>Вход владельца</h1>
+  <input id="em" type="email" placeholder="Почта" autocomplete="username" autocapitalize="off">
+  <input id="pw" type="password" placeholder="Пароль" autocomplete="current-password">
+  <p class="err" id="pe"></p><button class="btn" id="lg">Войти</button>
+  <p class="note" id="demoNote" style="margin-top:10px"></p></div>
  <div id="dash" class="hid"><h1>Панель владельца</h1>
-  <div class="g3"><div class="c"><b id="s1">0</b>заказов сегодня</div><div class="c"><b id="s2">0</b>выручка сегодня, ₽</div><div class="c"><b id="s3">0</b>выручка за 7 дней, ₽</div></div>
-  <div class="row" id="flt"></div><div class="c" id="list"></div>
+  <div class="g4"><div class="c"><b id="s0">0</b>новых заявок</div><div class="c"><b id="s1">0</b>заказов сегодня</div><div class="c"><b id="s2">0</b>выручка сегодня, ₽</div><div class="c"><b id="s3">0</b>выручка за 7 дней, ₽</div></div>
+  <div class="row" id="flt"></div>
+  <div class="row"><button class="chip sm" id="rf">⟳ Обновить</button><span class="note" id="upd" style="align-self:center;margin:0"></span></div>
+  <div class="c" id="list"></div>
   <button class="btn s" id="out">Выйти</button></div>
 </section>
 </div>
@@ -92,20 +106,84 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--bd);border-
 <script>
 var ITEMS={sofa:{n:"Диван",s:[["2-местный",1800],["3-местный",2500],["Угловой",3500]]},chair:{n:"Кресло",s:[["Обычное",900],["Большое",1300]]},mat:{n:"Матрас",s:[["Односпальный",1200],["Двуспальный",1800]]},rug:{n:"Ковёр",s:[["до 3 м²",1000],["3–6 м²",1800],["от 6 м²",2800]]}};
 var EXT=[["Защитная пропитка",500],["Удаление запаха",400],["Выведение пятен",600]];
-var COLS=["#8a6f56","#4b6a88","#7d8f6b","#b9b4aa","#a24b4b"],ST={new:"Новая",road:"В пути",done:"Выполнено"};
-var cur="sofa",col=COLS[0],ex=[],orders=[],mine=null,filt="all",page="home",PASS="1234",lastSend=0;
+var COLS=["#8a6f56","#4b6a88","#7d8f6b","#b9b4aa","#a24b4b"];
+var ST={new:"Новая",confirmed:"Подтверждена",road:"В пути",done:"Выполнена",cancelled:"Отменена"};
+var STEPS=["new","confirmed","road","done"],STL=["Принята","Подтверждена","В пути","Готово"];
+var cur="sofa",col=COLS[0],ex=[],filt="all",page="home",lastSend=0,OL=[],busy=false;
+
+/* ===== НАСТРОЙКА БАЗЫ (Supabase). Пусто = демо-режим без общей базы ===== */
+var CFG={url:"https://laxghrzcoigfgsvrqzcu.supabase.co",key:"sb_publishable_Xq4qPAyDWhov7WzFinXUIQ_AuvU208y"};
+var SB=!!(CFG.url&&CFG.key);if(SB)CFG.url=CFG.url.replace(/\/+$/,"");
+/* ======================================================================== */
+
 function $(i){return document.getElementById(i)}
-function ld(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
+function ld(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-orders=ld("ord",[]);mine=ld("mine",null);
-if(!orders.length){var H=36e5,N=Date.now();orders=[
-{id:N-2*H,n:"Анна Смирнова",p:"+7 903 111-22-33",a:"Москва, ул. Тверская, 12, кв. 45",dt:"",cm:"Домофон 45К, звонить за час",item:"Диван",sz:"3-местный",ex:["Защитная пропитка"],pr:3000,st:"new"},
-{id:N-5*H,n:"Игорь Петров",p:"+7 916 222-33-44",a:"Москва, Ленинградский пр-т, 37",dt:"",cm:"Пятно от кофе",item:"Ковёр",sz:"3–6 м²",ex:["Выведение пятен"],pr:2400,st:"road"},
-{id:N-26*H,n:"Мария Козлова",p:"+7 925 333-44-55",a:"Москва, ул. Арбат, 8, кв. 12",dt:"",cm:"",item:"Матрас",sz:"Двуспальный",ex:["Удаление запаха"],pr:2200,st:"done"},
-{id:N-50*H,n:"Дмитрий Орлов",p:"+7 999 444-55-66",a:"Москва, Кутузовский пр-т, 24",dt:"",cm:"",item:"Диван",sz:"Угловой",ex:[],pr:3500,st:"done"},
-{id:N-72*H,n:"Елена Волкова",p:"+7 905 555-66-77",a:"Москва, ул. Профсоюзная, 90",dt:"",cm:"",item:"Кресло",sz:"Большое",ex:["Защитная пропитка"],pr:1800,st:"done"}];sv("ord",orders)}
-var ssn=false;try{ssn=sessionStorage.getItem("own")=="1"}catch(e){}
+function rm(k){try{localStorage.removeItem(k)}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fmt(t){return String(t||"").replace("T"," ")}
+function ago(iso){var m=Math.max(0,Math.round((Date.now()-new Date(iso).getTime())/6e4));if(m<1)return"только что";if(m<60)return m+" мин назад";var h=Math.round(m/60);if(h<24)return h+" ч назад";return Math.round(h/24)+" дн назад"}
+
+/* ---------- слой данных: Supabase или демо (localStorage) ---------- */
+var sb=ld("sb",null);
+function hdr(t){var h={"apikey":CFG.key,"Content-Type":"application/json"};var bt=t||(/^eyJ/.test(CFG.key)?CFG.key:"");if(bt)h["Authorization"]="Bearer "+bt;return h}
+async function http(m,p,body,t,extra){
+ var h=hdr(t);if(extra)for(var k in extra)h[k]=extra[k];
+ var r=await fetch(CFG.url+p,{method:m,headers:h,body:body?JSON.stringify(body):undefined});
+ var tx=await r.text(),j=null;try{j=tx?JSON.parse(tx):null}catch(e){}
+ if(!r.ok){var er=new Error((j&&(j.message||j.msg||j.error_description))||("HTTP "+r.status));er.status=r.status;er.code=j&&(j.error_code||j.code);throw er}
+ return j}
+function saveSess(j){sb={at:j.access_token,rt:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000,email:(j.user&&j.user.email)||(sb&&sb.email)||""};sv("sb",sb)}
+async function token(){
+ if(!sb)throw new Error("auth");
+ if(Date.now()>sb.exp-60000){
+  try{saveSess(await http("POST","/auth/v1/token?grant_type=refresh_token",{refresh_token:sb.rt}))}
+  catch(e){if(e.status&&e.status<500){sb=null;rm("sb")}throw e}}
+ return sb.at}
+async function authed(m,p,body,extra){
+ var t=await token();
+ try{return await http(m,p,body,t,extra)}
+ catch(e){if(e.status==401){sb.exp=0;t=await token();return await http(m,p,body,t,extra)}throw e}}
+
+var demo={
+ all:function(){return ld("ord",[])},
+ save:function(o){sv("ord",o)}
+};
+(function seed(){if(SB||demo.all().length)return;var H=36e5,N=Date.now();function t(h){return new Date(N-h*H).toISOString()}
+ demo.save([
+ {id:"d5",num:5,created_at:t(2),updated_at:t(2),name:"Анна Смирнова",phone:"+7 903 111-22-33",address:"Москва, ул. Тверская, 12, кв. 45",wanted:"",item:"Диван",size:"3-местный",extras:["Защитная пропитка"],price:3000,comment:"Домофон 45К, звонить за час",status:"new",owner_note:""},
+ {id:"d4",num:4,created_at:t(5),updated_at:t(4),name:"Игорь Петров",phone:"+7 916 222-33-44",address:"Москва, Ленинградский пр-т, 37",wanted:"",item:"Ковёр",size:"3–6 м²",extras:["Выведение пятен"],price:2400,comment:"Пятно от кофе",status:"road",owner_note:""},
+ {id:"d3",num:3,created_at:t(26),updated_at:t(20),name:"Мария Козлова",phone:"+7 925 333-44-55",address:"Москва, ул. Арбат, 8, кв. 12",wanted:"",item:"Матрас",size:"Двуспальный",extras:["Удаление запаха"],price:2200,comment:"",status:"done",owner_note:""},
+ {id:"d2",num:2,created_at:t(50),updated_at:t(46),name:"Дмитрий Орлов",phone:"+7 999 444-55-66",address:"Москва, Кутузовский пр-т, 24",wanted:"",item:"Диван",size:"Угловой",extras:[],price:3500,comment:"",status:"done",owner_note:""},
+ {id:"d1",num:1,created_at:t(72),updated_at:t(70),name:"Елена Волкова",phone:"+7 905 555-66-77",address:"Москва, ул. Профсоюзная, 90",wanted:"",item:"Кресло",size:"Большое",extras:["Защитная пропитка"],price:1800,comment:"",status:"done",owner_note:""}])})();
+
+var api={
+ createOrder:async function(o){
+  if(SB)return await http("POST","/rest/v1/rpc/create_order",{p_name:o.name,p_phone:o.phone,p_address:o.address,p_wanted:o.wanted,p_item:o.item,p_size:o.size,p_extras:o.extras,p_price:o.price,p_comment:o.comment});
+  var a=demo.all(),n=a.reduce(function(m,x){return Math.max(m,x.num)},0)+1,id="d"+Date.now(),iso=new Date().toISOString();
+  a.unshift({id:id,num:n,created_at:iso,updated_at:iso,name:o.name,phone:o.phone,address:o.address,wanted:o.wanted,item:o.item,size:o.size,extras:o.extras,price:o.price,comment:o.comment,status:"new",owner_note:""});
+  demo.save(a);return {id:id,num:n}},
+ getOrder:async function(id){
+  if(SB)return await http("POST","/rest/v1/rpc/get_order",{p_id:id});
+  return demo.all().filter(function(x){return x.id==id})[0]||null},
+ login:async function(email,pw){
+  if(!SB){if(pw==="1234"){sb={email:"demo"};return}throw new Error("bad")}
+  saveSess(await http("POST","/auth/v1/token?grant_type=password",{email:email,password:pw}));
+  try{var ok=await authed("POST","/rest/v1/rpc/is_owner",{});if(ok===false){sb=null;rm("sb");throw new Error("not_owner")}}
+  catch(e){if(e.message=="not_owner")throw e}},
+ list:async function(){
+  if(SB)return await authed("GET","/rest/v1/orders?select=*&order=created_at.desc&limit=300");
+  return demo.all()},
+ update:async function(id,patch){
+  if(SB){await authed("PATCH","/rest/v1/orders?id=eq."+encodeURIComponent(id),patch,{"Prefer":"return=minimal"});return}
+  var a=demo.all();a.forEach(function(o){if(o.id==id){for(var k in patch)o[k]=patch[k];o.updated_at=new Date().toISOString()}});demo.save(a)},
+ del:async function(id){
+  if(SB){await authed("DELETE","/rest/v1/orders?id=eq."+encodeURIComponent(id),null,{"Prefer":"return=minimal"});return}
+  demo.save(demo.all().filter(function(o){return o.id!=id}))},
+ logout:function(){sb=null;rm("sb")}
+};
+function loggedIn(){return SB?!!sb&&!!sb.rt:!!sb}
+if(!SB){var _d=null;try{_d=sessionStorage.getItem("own")=="1"}catch(e){}sb=_d?{email:"demo"}:null}
 
 /* 3D */
 var cv=$("cv"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(40,1,.1,100),G=new THREE.Group(),rot=.5,drag=false,lx=0;
@@ -135,41 +213,92 @@ $("items").onclick=function(e){if(e.target.dataset.k){cur=e.target.dataset.k;ex=
 $("cols").onclick=function(e){if(e.target.dataset.c){col=e.target.dataset.c;ui();build()}};
 $("size").onchange=function(){$("sum").textContent=price()+" ₽"};
 $("ext").onchange=function(e){var i=+e.target.dataset.e;ex=e.target.checked?ex.concat(i):ex.filter(function(x){return x!=i});$("sum").textContent=price()+" ₽"};
-$("send").onclick=function(){
+$("send").onclick=async function(){
+ if(busy)return;
  var n=$("nm").value.trim(),p=$("ph").value.trim(),a=$("ad").value.trim();
  if($("hp").value)return;
  if(Date.now()-lastSend<15000){$("err").textContent="Подождите немного перед повторной отправкой.";return}
  if(n.length<2||!/^[+\d][\d\s()\-]{9,17}$/.test(p)||a.length<5){$("err").textContent="Проверьте имя, телефон (10+ цифр) и адрес.";return}
- $("err").textContent="";lastSend=Date.now();
- var o={id:Date.now(),n:n,p:p,a:a,dt:$("dt").value,cm:$("cm").value.trim(),item:ITEMS[cur].n,sz:ITEMS[cur].s[$("size").value][0],ex:ex.map(function(i){return EXT[i][0]}),pr:price(),st:"new"};
- orders.unshift(o);sv("ord",orders);mine=o.id;sv("mine",mine);
- $("nm").value=$("ph").value=$("ad").value=$("cm").value="";go("status")};
+ $("err").textContent="";busy=true;$("send").textContent="Отправляем…";
+ try{
+  var r=await api.createOrder({name:n,phone:p,address:a,wanted:$("dt").value,comment:$("cm").value.trim(),item:ITEMS[cur].n,size:ITEMS[cur].s[$("size").value][0],extras:ex.map(function(i){return EXT[i][0]}),price:price()});
+  lastSend=Date.now();sv("mine",{id:r.id,num:r.num});
+  $("nm").value=$("ph").value=$("ad").value=$("cm").value="";go("status")
+ }catch(e){
+  $("err").textContent=/too_many/.test(e.message)?"Слишком много заявок с этого номера. Попробуйте позже или позвоните нам.":(navigator.onLine===false?"Нет интернета. Подключитесь и отправьте ещё раз.":"Не удалось отправить заявку. Попробуйте ещё раз.")
+ }
+ busy=false;$("send").textContent="Отправить заявку"};
 
-/* мой заказ */
-function showMine(){var o=orders.filter(function(x){return x.id==mine})[0],el=$("mine");
- if(!o){el.innerHTML='<div class="c"><p>У вас пока нет заказов.</p><button class="btn" data-go="order">Заказать</button></div>';return}
- var i=["new","road","done"].indexOf(o.st);
- el.innerHTML='<div class="c"><h3>'+esc(o.item)+' · '+esc(o.sz)+'</h3><p style="margin:0">'+o.pr+' ₽'+(o.ex.length?' · '+esc(o.ex.join(", ")):'')+'</p>'
- +'<div class="tl">'+["Новая","В пути","Выполнено"].map(function(t,k){return'<div'+(k<=i?' class="on"':'')+'>'+t+'</div>'}).join("")+'</div>'
- +'<p style="margin:0">'+esc(o.a)+(o.dt?' · '+esc(o.dt.replace("T"," ")):'')+'</p></div><p>Статус обновляется, когда мастер меняет его в панели владельца.</p>'}
+/* ---------- мой заказ ---------- */
+async function showMine(){
+ var m=ld("mine",null),el=$("mine");
+ if(!m){el.innerHTML='<div class="c"><p>У вас пока нет заказов.</p><button class="btn" data-go="order">Заказать</button></div>';return}
+ var o=null,fail=false;
+ try{o=await api.getOrder(m.id)}catch(e){fail=true}
+ if(page!="status")return;
+ if(fail){el.innerHTML='<div class="c"><h3>Заказ №'+esc(m.num)+'</h3><p style="margin:0">Не удалось загрузить статус. Проверьте интернет.</p></div><button class="btn s" id="rfm">Обновить</button>';return}
+ if(!o){el.innerHTML='<div class="c"><p>Заказ не найден.</p><button class="btn" data-go="order">Заказать</button></div>';return}
+ var ex2=o.extras||[],i=STEPS.indexOf(o.status),can=o.status=="cancelled";
+ el.innerHTML='<div class="c"><div class="oh"><h3>Заказ №'+esc(o.num)+'</h3><span class="badge '+o.status+'">'+ST[o.status]+'</span></div>'
+ +'<p style="margin:4px 0 0">'+esc(o.item)+' · '+esc(o.size)+' · <b style="color:var(--tx)">'+o.price+' ₽</b>'+(ex2.length?'<br>+ '+esc(ex2.join(", ")):'')+'</p>'
+ +(can?'<p style="margin:12px 0 0">Заказ отменён. Если это ошибка — оформите новый заказ или позвоните нам.</p>'
+  :'<div class="tl">'+STL.map(function(t,k){return'<div'+(k<=i?' class="on"':'')+'>'+t+'</div>'}).join("")+'</div>')
+ +'<p style="margin:0">'+esc(o.address)+(o.wanted?' · '+esc(fmt(o.wanted)):'')+'</p></div>'
+ +'<button class="btn s" id="rfm">Обновить статус</button><p class="note" style="margin-top:10px">Статус обновляется сам, когда мастер меняет его. Заказ оформлен '+esc(ago(o.created_at))+'.</p>'}
+$("mine").onclick=function(e){if(e.target.id=="rfm")showMine()};
 
-/* владелец */
-function dash(){var now=Date.now(),day=864e5,t=0,r1=0,r7=0;
- orders.forEach(function(o){var a=now-o.id;if(a<day){t++;if(o.st=="done")r1+=o.pr}if(a<7*day&&o.st=="done")r7+=o.pr});
- $("s1").textContent=t;$("s2").textContent=r1;$("s3").textContent=r7;
- $("flt").innerHTML=["all","new","road","done"].map(function(k){return'<button class="chip'+(k==filt?' on':'')+'" data-f="'+k+'">'+(k=="all"?"Все":ST[k])+'</button>'}).join("");
- var l=orders.filter(function(o){return filt=="all"||o.st==filt});
- $("list").innerHTML=l.length?l.map(function(o){return'<div class="o"><b>'+esc(o.item)+' · '+esc(o.sz)+'</b> — '+o.pr+' ₽ <span class="badge '+o.st+'">'+ST[o.st]+'</span><br>'
-  +esc(o.n)+'<br><span style="color:var(--mut)">'+esc(o.a)+(o.dt?' · '+esc(o.dt.replace("T"," ")):'')+(o.ex.length?' · '+esc(o.ex.join(", ")):'')+(o.cm?'<br>'+esc(o.cm):'')+'</span>'
-  +'<div class="row"><a class="chip" href="tel:'+esc(o.p.replace(/[^+\d]/g,""))+'">📞 Позвонить</a>'
-  +'<select data-id="'+o.id+'" style="width:auto;margin:0;padding:8px">'+Object.keys(ST).map(function(k){return'<option value="'+k+'"'+(k==o.st?' selected':'')+'>'+ST[k]+'</option>'}).join("")+'</select></div></div>'}).join(""):'<p style="margin:0">Заявок нет.</p>'}
+/* ---------- кабинет владельца ---------- */
+function dash(){
+ var day0=new Date().setHours(0,0,0,0),wk=Date.now()-7*864e5,t=0,nw=0,r1=0,r7=0;
+ OL.forEach(function(o){var c=new Date(o.created_at).getTime(),u=new Date(o.updated_at||o.created_at).getTime();
+  if(c>=day0)t++;if(o.status=="new")nw++;if(o.status=="done"){if(u>=day0)r1+=o.price;if(u>=wk)r7+=o.price}});
+ $("s0").textContent=nw;$("s1").textContent=t;$("s2").textContent=r1;$("s3").textContent=r7;
+ var keys=["all","new","confirmed","road","done","cancelled"];
+ $("flt").innerHTML=keys.map(function(k){var n=k=="all"?OL.length:OL.filter(function(o){return o.status==k}).length;return'<button class="chip sm'+(k==filt?' on':'')+'" data-f="'+k+'">'+(k=="all"?"Все":ST[k])+' '+n+'</button>'}).join("");
+ var l=OL.filter(function(o){return filt=="all"||o.status==filt});
+ $("list").innerHTML=l.length?l.map(card).join(""):'<p style="margin:0">Заявок нет.</p>'}
+function card(o){var x=o.extras||[],ph=String(o.phone).replace(/[^+\d]/g,"");
+ return'<div class="o"><div class="oh"><b>№'+esc(o.num)+' · '+esc(o.item)+' · '+esc(o.size)+'</b><span class="badge '+o.status+'">'+ST[o.status]+'</span></div>'
+ +'<div><b>'+o.price+' ₽</b> <span class="mut">· '+esc(ago(o.created_at))+'</span></div>'
+ +'<div><b>'+esc(o.name)+'</b> · '+esc(o.phone)+'</div>'
+ +'<div class="mut">'+esc(o.address)+'</div>'
+ +(o.wanted?'<div>🕒 '+esc(fmt(o.wanted))+'</div>':'')
+ +(x.length?'<div class="mut">+ '+esc(x.join(", "))+'</div>':'')
+ +(o.comment?'<div class="cmt">💬 '+esc(o.comment)+'</div>':'')
+ +'<div class="row"><a class="chip sm" href="tel:'+esc(ph)+'">📞 Позвонить</a><a class="chip sm" target="_blank" rel="noopener" href="https://yandex.ru/maps/?text='+encodeURIComponent(o.address)+'">🗺 На карте</a></div>'
+ +'<div class="row">'+Object.keys(ST).map(function(k){return'<button class="chip sm'+(k==o.status?' on':'')+'" data-st="'+k+'" data-id="'+esc(o.id)+'">'+ST[k]+'</button>'}).join("")+'</div>'
+ +'<textarea id="n-'+esc(o.id)+'" rows="1" placeholder="Заметка (видите только вы)">'+esc(o.owner_note||"")+'</textarea>'
+ +'<div class="row"><button class="chip sm" data-note="'+esc(o.id)+'">Сохранить заметку</button><button class="chip sm dn" data-del="'+esc(o.id)+'">Удалить</button></div></div>'}
+async function refresh(quiet){
+ if(!loggedIn())return;
+ try{OL=await api.list()||[];$("upd").textContent="обновлено "+new Date().toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"});
+  if(!(quiet&&document.activeElement&&document.activeElement.tagName=="TEXTAREA"))dash()}
+ catch(e){if(!loggedIn()){own();return}$("upd").textContent="не удалось обновить"}}
+function find(id){return OL.filter(function(o){return o.id==id})[0]}
 $("flt").onclick=function(e){if(e.target.dataset.f){filt=e.target.dataset.f;dash()}};
-$("list").onchange=function(e){var id=e.target.dataset.id;orders.forEach(function(o){if(o.id==id)o.st=e.target.value});sv("ord",orders);dash()};
-function own(){$("login").classList.toggle("hid",ssn);$("dash").classList.toggle("hid",!ssn);if(ssn)dash()}
-$("lg").onclick=function(){if($("pw").value===PASS){ssn=true;try{sessionStorage.setItem("own","1")}catch(e){}$("pw").value="";$("pe").textContent="";own()}else $("pe").textContent="Неверный пароль"};
-$("out").onclick=function(){ssn=false;try{sessionStorage.removeItem("own")}catch(e){}own()};
+$("rf").onclick=function(){refresh(false)};
+$("list").onclick=async function(e){
+ var t=e.target,id;
+ try{
+  if(t.dataset.st){id=t.dataset.id;var o=find(id);if(!o||o.status==t.dataset.st)return;await api.update(id,{status:t.dataset.st});o.status=t.dataset.st;o.updated_at=new Date().toISOString();dash()}
+  else if(t.dataset.note){id=t.dataset.note;var v=$("n-"+id).value.trim();await api.update(id,{owner_note:v||null});var o2=find(id);if(o2)o2.owner_note=v;t.textContent="Сохранено ✓";setTimeout(function(){t.textContent="Сохранить заметку"},1500)}
+  else if(t.dataset.del){if(!confirm("Удалить заявку навсегда?"))return;await api.del(t.dataset.del);OL=OL.filter(function(o){return o.id!=t.dataset.del});dash()}
+ }catch(er){$("upd").textContent="Ошибка сохранения. Проверьте интернет и войдите снова.";if(!loggedIn())own()}};
+function own(){var li=loggedIn();$("login").classList.toggle("hid",li);$("dash").classList.toggle("hid",!li);
+ $("em").classList.toggle("hid",!SB);
+ $("demoNote").textContent=SB?"":"Демо-режим: общая база не подключена, заявки видны только на этом устройстве. Пароль: 1234.";
+ if(li)refresh(false)}
+$("lg").onclick=async function(){
+ $("pe").textContent="";var em=$("em").value.trim(),pw=$("pw").value;
+ if(!pw||(SB&&!em)){$("pe").textContent=SB?"Введите почту и пароль":"Введите пароль";return}
+ $("lg").textContent="Входим…";
+ try{await api.login(em,pw);if(!SB){try{sessionStorage.setItem("own","1")}catch(e){}}$("pw").value="";own()}
+ catch(e){$("pe").textContent=e.message=="not_owner"?"Эта почта не добавлена как владелец.":(/invalid|bad/i.test(e.message)?"Неверная почта или пароль":"Не удалось войти. Проверьте интернет.")}
+ $("lg").textContent="Войти"};
+$("out").onclick=function(){api.logout();if(!SB){try{sessionStorage.removeItem("own")}catch(e){}}OL=[];own()};
+setInterval(function(){if(page=="owner"&&loggedIn())refresh(true);else if(page=="status"&&ld("mine",null))showMine()},20000);
 
-/* навигация */
+/* ---------- навигация ---------- */
 function go(p){page=p;["home","order","status","owner"].forEach(function(k){$("p-"+k).classList.toggle("hid",k!=p)});
  document.querySelectorAll(".tb button").forEach(function(b){b.classList.toggle("on",b.dataset.go==p)});
  if(p=="order"){ui();build();rs()}if(p=="status")showMine();if(p=="owner")own();scrollTo(0,0)}
