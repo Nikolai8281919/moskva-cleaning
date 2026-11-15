@@ -110,13 +110,16 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 .ph label{width:76px;height:76px;border-radius:14px;border:2px dashed var(--bd);display:grid;place-items:center;color:var(--mut);font-size:28px;cursor:pointer}
 .ph input{display:none}
 .big{max-width:100%;border-radius:12px;margin:4px 0}
-.svc{display:grid;gap:10px}.svc .c{margin:0}.svc .vr{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--bd);font-size:15px}.svc .vr:first-of-type{border:0}
+.svc{display:grid;gap:12px}.svc .c{margin:0;padding:18px}
+.sch{display:flex;align-items:center;gap:14px;margin-bottom:10px}.sci{flex:none;width:54px;height:54px;border-radius:16px;background:var(--acs);display:grid;place-items:center;font-size:28px}.sct{flex:1;min-width:0}.sct b{display:block;font-size:19px;line-height:1.2}.sct small{color:var(--mut);font-size:13px}
+.sfacts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.sfacts span{padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--bd);font-size:13px;color:var(--tx)}.svc .vr{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--bd);font-size:15px}.svc .vr:first-of-type{border:0}
 .step{display:flex;gap:12px;align-items:flex-start;padding:8px 0}.step i{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ac);color:var(--acx);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:14px}.step p{margin:0;color:var(--tx)}
 .ft2{margin:26px 0 4px;padding-top:16px;border-top:1px solid var(--bd);font-size:14px}.ft2 .lk{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0}.ft2 a,.ft2 button.l{background:none;border:0;padding:4px 0;color:var(--mut);font:inherit;cursor:pointer;text-decoration:none}
 .ft2 .tb{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .sheet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}.sheet .c{width:100%;max-width:520px;border-radius:24px 24px 0 0;margin:0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px))}
 .legal h2{font-size:17px}.legal p,.legal li{color:var(--tx);font-size:15px}.legal ul{padding-left:20px;margin:0 0 12px}
 @media (min-width:760px){
+ .svc{grid-template-columns:repeat(2,1fr)}
  .w{max-width:1040px;padding:6px 28px}.nav{display:flex}
  .hg{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}.hg .hr{position:sticky;top:76px}
  h1{font-size:44px}#cv{height:380px}#gcv{height:380px}.c{padding:20px}
@@ -143,11 +146,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
  <div class="c" id="gteaser"><div class="gt"><span class="em">🧽</span><div><h3 style="margin:0">Есть свободная минутка?</h3><p id="gtn"></p></div></div><button class="btn s" id="gplay" style="margin-top:10px">Поиграть</button></div></div></div>
  <h2 id="how">Как это работает</h2>
  <div class="how"><div class="c"><span class="e">🛋️</span>Что почистить</div><div class="c"><span class="e">🏷️</span>Цена заранее</div><div class="c"><span class="e">📍</span>Фото и адрес</div><div class="c"><span class="e">📥</span>Заявка в кабинет</div></div>
- <h2 id="prices-h">Цены</h2><div class="c" id="prices"></div>
- <h2>Отзывы</h2>
- <div class="c"><h3>Анна ★★★★★</h3><p style="margin:0">Диван как новый, мастер приехал вовремя.</p></div>
- <div class="c"><h3>Игорь ★★★★★</h3><p style="margin:0">Вывели старые пятна на ковре, пропитка работает.</p></div>
- <div class="c"><h3>Мария ★★★★☆</h3><p style="margin:0">Быстро и аккуратно, высох матрас за несколько часов.</p></div>
+ <h2 id="prices-h">Каталог и цены</h2>
+ <div class="c"><p style="margin:0 0 12px">Диваны, кресла, матрасы, стулья и другая мягкая мебель: все варианты и цены в одном месте.</p><button class="btn" data-go="services">Открыть каталог →</button></div>
  <h2 id="zone">Зона работы</h2>
  <div class="c"><h3 id="area"></h3><p style="margin:0" id="hours"></p><a class="btn s hid" id="callBtn" style="margin-top:10px"></a></div>
 </section>
@@ -185,7 +185,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
   <p class="err" id="err"></p><button class="btn" id="send">Отправить заявку</button></div>
 </section>
 
-<section id="p-services" class="hid"><button class="back" data-go="home">◂ На главную</button><h1 style="margin-top:2px">Услуги</h1><p class="sub">Выездная химчистка мягкой мебели. Цены ниже ориентировочные, точную стоимость подтвердим по телефону.</p>
+<section id="p-services" class="hid"><button class="back" data-go="home">◂ На главную</button><h1 style="margin-top:2px">Услуги</h1><p class="sub">Выездная химчистка мягкой мебели. Выберите, что чистим, и посчитайте стоимость. Точную цену подтвердим по телефону.</p>
+ <div class="sfacts" id="sfacts"></div>
  <div class="svc" id="svc"></div>
  <h2>От расчёта до чистки</h2><div class="c"><div class="step"><i>1</i><p>Выберите мебель и рассчитайте стоимость на сайте.</p></div><div class="step"><i>2</i><p>Оставьте заявку: адрес, удобное время, фото по желанию.</p></div><div class="step"><i>3</i><p>Мы свяжемся, уточним цену и согласуем выезд.</p></div><div class="step"><i>4</i><p>Мастер приезжает с оборудованием и чистит на месте.</p></div></div>
  <h2>Условия выезда</h2><div class="c" id="terms"></div>
@@ -226,7 +227,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 
 <footer class="ft2"><div class="oh"><b style="font-size:18px" id="fb"></b><span class="mut" id="copy"></span></div>
  <div class="lk"><a data-go="contacts" style="color:var(--tx);font-size:17px;width:100%">Связаться</a><a data-go="services">Услуги</a><a data-go="privacy">Конфиденциальность</a><a data-go="authors">Авторы</a><a data-go="owner">Кабинет</a><a data-go="status" id="fmine" class="hid">Моя заявка</a></div>
- <p class="note" style="margin:10px 0 0;font-size:11px">версия 3 · 16.11</p><div class="tb"><button class="chip sm" id="thm">☀️ Светлая тема</button><button class="chip sm" id="inst">⬇ Установить приложение</button></div></footer>
+ <p class="note" style="margin:10px 0 0;font-size:11px">версия 4 · 16.11</p><div class="tb"><button class="chip sm" id="thm">☀️ Светлая тема</button><button class="chip sm" id="inst">⬇ Установить приложение</button></div></footer>
 </main>
 <div id="toast"></div>
 <div class="sheet hid" id="sheet"><div class="c"><h3 id="sht"></h3><p id="shp" style="color:var(--tx)"></p><button class="btn" id="shx">Понятно</button></div></div>
@@ -529,7 +530,6 @@ function paint(){
  $("area").textContent=SET.area;$("hours").textContent=SET.hours;$("copy").textContent=SET.city;$("fb").textContent=SET.brand;$("auth").textContent=SET.brand;
  $("thm").textContent=document.documentElement.getAttribute("data-theme")=="light"?"🌙 Тёмная тема":"☀️ Светлая тема";$("fmine").classList.toggle("hid",!ld("mine",null));
  var cb=$("callBtn");if(SET.phone){cb.href="tel:"+SET.phone.replace(/[^+\d]/g,"");cb.textContent="📞 "+SET.phone;cb.classList.remove("hid")}else cb.classList.add("hid");
- $("prices").innerHTML=ITEMS.map(function(x){return'<div class="pr"><span>'+esc(x.n)+'</span><b>'+(x.photo?'По фото':'от '+rub(Math.min.apply(null,x.s.map(function(z){return z[1]}))))+'</b></div>'}).join("");
  gameTeaser();cartPill();
  if(E1){showShape(E1,(itm(cur)||ITEMS[0]).shape)}
  bUi();if(page=="cart")cartRender();if(page=="checkout")coRender()}
@@ -736,10 +736,13 @@ $("shx").onclick=function(){$("sheet").classList.add("hid")};
 /* ================= услуги / тема / установка ================= */
 function svcRender(){
  var core=ITEMS.filter(function(x){return!x.photo}),oth=ITEMS.filter(function(x){return x.photo});
- $("svc").innerHTML=core.map(function(x){return'<div class="c"><div class="oh"><h3 style="margin:0;font-size:18px">'+(ICON[x.shape]||"")+' '+esc(x.n)+'</h3><span class="mut" style="font-size:13px">от '+rub(Math.min.apply(null,x.s.map(function(z){return z[1]})))+'</span></div>'
-  +'<div style="margin-top:8px">'+x.s.map(function(z){return'<div class="vr"><span>'+esc(z[0])+'</span><b>'+rub(z[1])+'</b></div>'}).join("")
-  +(x.two?'<div class="vr"><span class="mut">С двух сторон</span><span class="mut">+'+x.two+'%</span></div>':'')+'</div></div>'}).join("")
-  +oth.map(function(x){return'<div class="c"><h3 style="font-size:18px">А если это что-то другое?</h3><p style="margin:0 0 10px">Пуф, подушки, ковёр, детская мебель. Опишите, что нужно почистить, и приложите фото. Цену назовём по фото.</p><button class="btn s" data-k2="'+esc(x.k)+'">Рассчитать «'+esc(x.n)+'»</button></div>'}).join("");
+ $("sfacts").innerHTML='<span>Минимальный заказ '+rub(SET.min)+'</span><span>Выезд по городу: '+(SET.trip?rub(SET.trip):'бесплатно')+'</span><span>Запись на удобное время</span>';
+ $("svc").innerHTML=core.map(function(x){var mn=Math.min.apply(null,x.s.map(function(z){return z[1]}));
+  return'<div class="c"><div class="sch"><div class="sci">'+(ICON[x.shape]||"")+'</div><div class="sct"><b>'+esc(x.n)+'</b><small>от '+rub(mn)+'</small></div></div>'
+  +x.s.map(function(z){return'<div class="vr"><span>'+esc(z[0])+'</span><b>'+rub(z[1])+'</b></div>'}).join("")
+  +(x.two?'<div class="vr"><span class="mut">С двух сторон</span><span class="mut">+'+x.two+'%</span></div>':'')
+  +'<button class="btn s" data-k2="'+esc(x.k)+'" style="margin-top:12px">Рассчитать · '+esc(x.n.toLowerCase())+' →</button></div>'}).join("")
+  +oth.map(function(x){return'<div class="c"><div class="sch"><div class="sci">'+(ICON[x.shape]||"⋯")+'</div><div class="sct"><b>А если это что-то другое?</b><small>Цена по фото</small></div></div><p style="margin:0 0 4px">Пуф, подушки, ковёр, детская мебель. Опишите, что нужно почистить, и приложите фото: назовём цену.</p><button class="btn s" data-k2="'+esc(x.k)+'" style="margin-top:8px">Отправить фото →</button></div>'}).join("");
  $("terms").innerHTML='<div class="sum"><span>Минимальный заказ</span><b>'+rub(SET.min)+'</b></div><div class="sum"><span>Выезд по городу</span><b>'+(SET.trip?rub(SET.trip):'Бесплатно')+'</b></div><div class="sum"><span>За пределами города</span><b>+'+rub(SET.out)+'</b></div><div class="sum"><span>Сильные загрязнения</span><b>+'+SET.dirty+'%</b></div><p class="note" style="margin:8px 0 0">'+esc(SET.area)+'. '+esc(SET.hours)+'</p>'}
 $("svc").onclick=function(e){var b=e.target.closest("[data-k2]");if(b){cur=b.dataset.k2;editIdx=null;go("home")}};
 function ctRender(){[].forEach.call(document.querySelectorAll(".bn2"),function(e){e.textContent=SET.brand});$("cta").textContent=SET.area;
